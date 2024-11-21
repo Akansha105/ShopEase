@@ -3,7 +3,6 @@ import db from '../db/conn.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
-import products from '../constant/productsdata.js'
 
 env.config()
 const router = new express.Router() //will be used to call all the apis
@@ -59,7 +58,6 @@ router.get('/getproducts', async (req, res) => {
 
 // registering the data
 router.post('/signup', async (req, res) => {
-  // console.log(req.body);
   const { fname, email, number, password, cpassword } = req.body
 
   if (!fname || !email || !number || !password || !cpassword) {
@@ -96,11 +94,9 @@ router.get('/getDetail/:id', async (req, res) => {
   try {
     // to get the id that the we have inputted in the params
     const { id } = req.params
-    // console.log(id);
     const indiData = await db.query('SELECT * fROM products WHERE id = $1', [
       id,
     ])
-    // console.log(indiData.rows);
     res.status(201).json(indiData.rows)
   } catch (err) {
     res.status(400).json(indiData.rows)
@@ -133,12 +129,10 @@ router.post('/signin', async (req, res) => {
           'UPDATE users SET token = $1 WHERE id = $2 RETURNING *',
           [token, id]
         )
-        // console.log(token)
-        // console.log(fullData.rows[0])
 
         // cookie
         res.cookie('ShopEase', token, {
-          expires: new Date(Date.now() + 900000),
+          expires: new Date(Date.now() + 1200000),
           httpOnly: true,
         })
       } catch (err) {
@@ -166,13 +160,11 @@ router.post('/addCart/:id', authenticate, async (req, res) => {
     const cartVal = await db.query('SELECT * FROM products WHERE id = $1', [
       productid,
     ])
-    // console.log(JSON.stringify(cartVal.rows[0],null,2) + " cart value ");
 
     const userid = req.userid
     const userContact = await db.query('SELECT * FROM users WHERE id = $1', [
       userid,
     ])
-    // console.log(JSON.stringify(userContact.rows[0],null,2)+"user data");
 
     // add cart data in database
     if (userContact.rows[0]) {
@@ -182,7 +174,6 @@ router.post('/addCart/:id', authenticate, async (req, res) => {
         [c, userid]
       )
       console.log(cart.rows[0])
-      // console.log(JSON.stringify(cart.rows[0],null,2) + 'user data after appending')
       res.status(201).json(userContact.rows[0])
     } else {
       res.status(401).json({ error: 'invalid user' })
@@ -251,10 +242,6 @@ RETURNING cart;`,
 
     console.log('the last result --', currVal.rows[0].cart)
 
-    // console.log("the last result --",currVal)
-    // const currVal = await db.query('DELETE FROM users WHERE id = $1 RETURNING *', [
-    //   productid,
-    // ])
     if (currVal.rowCount === 0) {
       return res.status(404).json({ message: 'User not found' })
     }
